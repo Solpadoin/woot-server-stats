@@ -1034,9 +1034,8 @@ function format_map_last_play(player_stats) {
 	return minutes + "m";
 }
 
-function show_map_opinion_popover(mapEl) {
-	let popover = document.getElementById("map_opinion_popover");
-	if (!popover || !mapEl) {
+function show_map_opinion_popover(mapEl, reveal = true) {
+	if (!mapEl) {
 		return;
 	}
 	
@@ -1046,12 +1045,17 @@ function show_map_opinion_popover(mapEl) {
 	}
 	
 	let first_map = get_first_map_in_series(map);
-	popover.innerHTML = "";
+	let dropdown = mapEl.getElementsByClassName("map_opinion_dropdown")[0];
+	if (!dropdown) {
+		return;
+	}
+	
+	dropdown.innerHTML = "";
 	
 	let title = document.createElement("div");
 	title.classList.add("map_opinion_title");
 	title.textContent = map;
-	popover.appendChild(title);
+	dropdown.appendChild(title);
 	
 	let table = document.createElement("table");
 	table.classList.add("map_opinion_table");
@@ -1095,24 +1099,16 @@ function show_map_opinion_popover(mapEl) {
 	}
 	
 	table.appendChild(tbody);
-	popover.appendChild(table);
-	
-	let rect = mapEl.getBoundingClientRect();
-	let width = Math.min(420, Math.max(320, Math.round(window.innerWidth * 0.26)));
-	let left = Math.max(16, rect.left - width - 18);
-	let top = Math.max(16, Math.min(rect.top, window.innerHeight - 420));
-	
-	popover.style.width = width + "px";
-	popover.style.left = left + "px";
-	popover.style.top = top + "px";
-	popover.classList.remove("hidden");
+	dropdown.appendChild(table);
+	if (reveal) {
+		mapEl.classList.add("show_opinions");
+	}
 }
 
 function hide_map_opinion_popover() {
-	let popover = document.getElementById("map_opinion_popover");
-	if (popover) {
-		popover.classList.add("hidden");
-	}
+	document.querySelectorAll(".map_container.show_opinions").forEach(function(mapEl) {
+		mapEl.classList.remove("show_opinions");
+	});
 }
 
 function rate_map(ev) {
@@ -1516,11 +1512,15 @@ function update_map_data() {
 			dislike.title = "Rating this map negatively will lower its chance of being picked while you're on the server."
 			+ "\n\nIf 67% of players on the server dislike a map, then it will never be picked.";		
 			
+			let opinionDropdown = document.createElement('div');
+			opinionDropdown.classList.add("map_opinion_dropdown");
+			
 			map.appendChild(title);
 			map.appendChild(img);
 			map.appendChild(like);
 			map.appendChild(fav);
 			map.appendChild(dislike);
+			map.appendChild(opinionDropdown);
 			upcoming.appendChild(map);
 		}
 		
@@ -1529,7 +1529,7 @@ function update_map_data() {
 	
 	// hide removed maps
 	for (let i = g_map_cycle.length; i < upcomingMapBoxes.length; i++) {
-		map.classList.add("superhidden");
+		upcomingMapBoxes[i].classList.add("superhidden");
 	}
 	
 	// update upcoming boxes
@@ -1550,6 +1550,7 @@ function update_map_data() {
 	
 	let mapFilterType = document.getElementById("map-filter-type").value;
 	let showingAllMaps = mapFilterType != "opt-upcoming";
+	let visibleUpcomingCount = 0;
 	
 	let mystats = g_steamid > 1 ? g_player_states[g_steamid].mapstats : {};
 	
@@ -1562,6 +1563,18 @@ function update_map_data() {
 		if (!map) {
 			return;
 		}
+		
+		let isUpcomingListItem = div.closest("#upcoming_maps_grid") !== null;
+		if (isUpcomingListItem && !showingAllMaps && !g_upcoming_maps.has(map)) {
+			div.classList.add("superhidden");
+			div.classList.remove("show_opinions");
+			return;
+		}
+		
+		if (isUpcomingListItem && !showingAllMaps) {
+			visibleUpcomingCount += 1;
+		}
+		
 		let dat = get_map_dat(map);
 		let first_map = get_first_map_in_series(map);
 		
@@ -1639,7 +1652,15 @@ function update_map_data() {
 				observeImage(img, g_intersection_observer);
 			}
 		}
+		
+		if (isUpcomingListItem) {
+			show_map_opinion_popover(div, false);
+		}
 	});
+	
+	if (!showingAllMaps) {
+		document.getElementById('upcoming_maps_count').textContent = visibleUpcomingCount;
+	}
 	
 	if (g_reload_map_images) {
 		console.log("Reloaded map images");
