@@ -570,12 +570,14 @@ function add_message(steamid64, ipStr, name, msg, time, msgType) {
 	
 	let chat_msg = document.createElement('span');
 	chat_msg.textContent = msg;
+	chat_msg.classList.add("chat_text");
 	
 	if (msgType == WEBMSG_CHAT_TYPE_GAME) {
 		chat_msg.classList.add("hud_msg");
 		chat_msg.title = "This message was sent by the map"
 	}
 	if (msgType == WEBMSG_CHAT_TYPE_SERVER) {
+		chat_msg.classList.add("server_msg");
 		chat_msg.title = "This message was sent by the server"
 	}
 	if (msgType == WEBMSG_CHAT_TYPE_ERROR) {
@@ -596,20 +598,14 @@ function add_message(steamid64, ipStr, name, msg, time, msgType) {
 	
 	chat_container.appendChild(chat_time);
 	
-	if (ipStr && ipStr.length && ipStr != "0.0.0.0") {
-		let chat_flag = document.createElement('img');
-		chat_flag.classList.add("cnflag");
+	if ((msgType == WEBMSG_CHAT_TYPE_NORMAL || msgType == WEBMSG_CHAT_TYPE_BAD_GUY || msgType == WEBMSG_CHAT_TYPE_WEB_USER) && steamid64 > 0) {
+		chat_name.addEventListener('click', open_player_profile);
+		chat_container.appendChild(chat_name);
 		
-		let info = g_ip_info[ipStr];
-		if (info) {
-			set_flag(chat_flag, ipStr, info);
-		} else {
-			set_flag(chat_flag, ipStr, {"country": "XX"});
-			chat_flag.classList.add("need_info");
-		}
-		chat_flag.addEventListener('click', click_player_flag);
-		
-		chat_container.appendChild(chat_flag);
+		let separator = document.createElement('span');
+		separator.classList.add("chat_separator");
+		separator.textContent = ": ";
+		chat_container.appendChild(separator);
 	}
 	
 	chat_container.appendChild(chat_msg);
@@ -1378,6 +1374,9 @@ function update_map_data() {
 		}
 		
 		let map = div.getAttribute("map");
+		if (!map) {
+			return;
+		}
 		let dat = get_map_dat(map);
 		let first_map = get_first_map_in_series(map);
 		
@@ -1756,8 +1755,11 @@ async function setup() {
 	preload_image("icon/client_hl.png");
 	preload_image("icon/client_sk.png");
 	
+	const useMockData = window.HLCOOP_MOCK && window.HLCOOP_MOCK.shouldUseMock();
 	g_map_data = await downloadJson("mapdb.json");
-	update_map_data();
+	if (!useMockData) {
+		update_map_data();
+	}
 	
 	setInterval(update_map_timer, 1000, -1);
 	
@@ -1907,7 +1909,9 @@ async function setup() {
 		document.getElementById("login_subtext").textContent = "";
 	}
 	
-	createWebSocket();
+	if (!useMockData) {
+		createWebSocket();
+	}
 	
 	lazy_image_loader_setup();
 	
@@ -1922,6 +1926,10 @@ async function setup() {
 	handle_resize();
 	
 	document.getElementById("content-container").classList.remove("hidden");
+	
+	if (useMockData) {
+		window.HLCOOP_MOCK.setupDashboard();
+	}
 	
 	document.getElementById("hide_maps_button").addEventListener("click", () => {
 		document.getElementById("hide_maps_cb").checked = true;
@@ -1986,32 +1994,14 @@ function action_denied_popup(reason, errorCode) {
 function handle_resize() {
 	let content = document.getElementById("content");
 	
-	g_hide_maps = document.getElementById("hide_maps_cb").checked;
+	g_hide_maps = false;
+	document.getElementById("hide_maps_cb").checked = false;
 	content.classList.remove("wide");
 	content.classList.remove("compact");
 	content.classList.remove("hide_maps");
 	g_wide_mode = false;
 	
-	document.getElementById("player_list_content").prepend(document.getElementById("active_maps"));
-	
-	if (g_hide_maps) {
-		g_wide_mode = true;
-		content.classList.add("wide");
-		content.classList.add("hide_maps");
-		if (window.innerWidth < 975) {
-			content.classList.add("compact");
-			content.classList.remove("wide");
-		}
-	} else {
-		if (window.innerWidth > 1500) {
-			content.classList.add("wide");
-			g_wide_mode = true;
-		} else if (window.innerWidth < 975) {
-			content.classList.add("compact");
-		} else {
-			document.getElementById("map_list_container").prepend(document.getElementById("active_maps"));
-		}
-	}
+	document.getElementById("map_list_container").prepend(document.getElementById("active_maps"));
 }
 
 function createWebSocket() {

@@ -26,6 +26,11 @@ function refresh_update_time() {
 }
 
 async function load_misc_data() {
+	if (window.HLCOOP_MOCK && window.HLCOOP_MOCK.shouldUseMock()) {
+		await window.HLCOOP_MOCK.setupStatsMeta();
+		return;
+	}
+	
 	const url = g_fastdl_server_url + "files/playerdb_misc.txt?t=" + Date.now();
 	const res = await fetch(url);
 	const text = await res.text();
@@ -329,49 +334,53 @@ function update_stat_table() {
 async function setup() {	
 	await load_misc_data();
 
-	const url = g_fastdl_server_url + "files/playerdb_all.txt?t=" + Date.now();
-	const res = await fetch(url);
-	const text = await res.text();
-	const lines = text.split(/\r?\n/);
-	const salt = new Date().getTime();
-	
-	for (const line of lines) {
-		const parts = line.split("\\");
+	if (window.HLCOOP_MOCK && window.HLCOOP_MOCK.shouldUseMock()) {
+		window.HLCOOP_MOCK.populateStatsData();
+	} else {
+		const url = g_fastdl_server_url + "files/playerdb_all.txt?t=" + Date.now();
+		const res = await fetch(url);
+		const text = await res.text();
+		const lines = text.split(/\r?\n/);
+		const salt = new Date().getTime();
 		
-		if (parts.length < 12) {
-			console.log("Not enough data in db row");
-			continue;
+		for (const line of lines) {
+			const parts = line.split("\\");
+			
+			if (parts.length < 12) {
+				console.log("Not enough data in db row");
+				continue;
+			}
+			
+			aliases = [];
+			for (let i = 12; i < parts.length; i += 4) {
+				aliases.push({
+					firstUsed: parseInt(parts[i]),
+					lastUsed: parseInt(parts[i+1]),
+					timeUsed: parseInt(parts[i+2]),
+					name: parts[i+3]
+				});
+			}
+			
+			let id = BigInt(parts[0]);
+			g_player_states[id] = {
+				id: id,
+				mapsPlayed: parts[1],
+				mapsMultiPlayed: parts[2],
+				totalPlayTime: parts[3],
+				recentPlayTime: parts[4],
+				firstSeen: parts[5],
+				lastSeen: parts[6],
+				model: parts[7],
+				steamAvatar: parts[8],
+				steamName: parts[9],
+				language: parts[10],
+				name: parts[11],
+				aliases: aliases,
+				salt: salt
+			};
+			
+			g_player_ids.push(id);
 		}
-		
-		aliases = [];
-		for (let i = 12; i < parts.length; i += 4) {
-			aliases.push({
-				firstUsed: parseInt(parts[i]),
-				lastUsed: parseInt(parts[i+1]),
-				timeUsed: parseInt(parts[i+2]),
-				name: parts[i+3]
-			});
-		}
-		
-		let id = BigInt(parts[0]);
-		g_player_states[id] = {
-			id: id,
-			mapsPlayed: parts[1],
-			mapsMultiPlayed: parts[2],
-			totalPlayTime: parts[3],
-			recentPlayTime: parts[4],
-			firstSeen: parts[5],
-			lastSeen: parts[6],
-			model: parts[7],
-			steamAvatar: parts[8],
-			steamName: parts[9],
-			language: parts[10],
-			name: parts[11],
-			aliases: aliases,
-			salt: salt
-		};
-		
-		g_player_ids.push(id);
 	}
 	
 	//console.log(lines);

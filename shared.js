@@ -185,8 +185,10 @@ function open_player_profile(event) {
 	let is_own_profile = clickedId == g_steamid;
 
 	const state = g_player_states[clickedId];
-	const avatar = "https://avatars.steamstatic.com/" + state.steamAvatar;
-	let spray = g_fastdl_server_url + "sprays/" + clickedId + ".png";
+	const avatar = state.steamAvatar && state.steamAvatar.indexOf("/") !== -1
+		? state.steamAvatar
+		: "https://avatars.steamstatic.com/" + state.steamAvatar;
+	let spray = state.sprayImage || (g_fastdl_server_url + "sprays/" + clickedId + ".png");
 	let firstSeenDate = new Date(state.firstSeen*1000);
 	
 	if (state.sprayBanReason) {
@@ -242,7 +244,7 @@ function open_player_profile(event) {
 	}
 	
 	let model_name = state.model;
-	let pmodel_img_src = get_repo_url(model_name) + "models/player/" + model_name + "/" + model_name + "_large.png";
+	let pmodel_img_src = state.modelImage || (get_repo_url(model_name) + "models/player/" + model_name + "/" + model_name + "_large.png");
 	if (!model_name) {
 		pmodel_img_src = "icon/missing_pmodel.png";
 		model_name = "<missing data>"
