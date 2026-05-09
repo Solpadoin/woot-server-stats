@@ -552,10 +552,16 @@ function normalize_chat_message(name, msg, msgType) {
 	let isPlayerMessage = msgType == WEBMSG_CHAT_TYPE_NORMAL || msgType == WEBMSG_CHAT_TYPE_BAD_GUY || msgType == WEBMSG_CHAT_TYPE_WEB_USER;
 	let isSystemLine = false;
 	let speakerName = name || "";
+	let hasLeadingNamePlaceholder = /^\s*;name;\s*:?\s*/i.test(normalized);
 	
 	if (name && isPlayerMessage) {
 		let normalizedName = normalize_speaker_label(name);
-		const explicitSpeaker = normalized.match(/^\s*((?:\(WEB\)\s*)?[^:]{1,80})\s*:\s*/);
+		
+		if (hasLeadingNamePlaceholder) {
+			normalized = normalized.replace(/^\s*;name;\s*:?\s*/i, "");
+		}
+		
+		const explicitSpeaker = normalized.match(/^\s*((?:\(WEB\)\s*)?[^:;]{1,80})\s*:\s*/);
 		
 		if (explicitSpeaker) {
 			speakerName = explicitSpeaker[1].trim();
@@ -565,7 +571,7 @@ function normalize_chat_message(name, msg, msgType) {
 		let previous;
 		do {
 			previous = normalized;
-			normalized = normalized.replace(/^\s*((?:\(WEB\)\s*)?[^:]{1,80})\s*:\s*/, function(match, label) {
+			normalized = normalized.replace(/^\s*((?:\(WEB\)\s*)?[^:;]{1,80})\s*:\s*/, function(match, label) {
 				return normalize_speaker_label(label) == normalizedName ? "" : match;
 			});
 		} while (normalized != previous);
@@ -575,7 +581,7 @@ function normalize_chat_message(name, msg, msgType) {
 	
 	return {
 		msg: normalized,
-		showSpeaker: isPlayerMessage && !isSystemLine,
+		showSpeaker: isPlayerMessage && !isSystemLine && !!speakerName,
 		isSystemLine,
 		speakerName
 	};
@@ -643,7 +649,7 @@ function add_message(steamid64, ipStr, name, msg, time, msgType) {
 		chat_msg.title = "This message was sent by the server";
 	}
 	
-	chat_msg.innerHTML = chat_msg.innerHTML.replace(";name;", chat_name.outerHTML);
+	chat_msg.innerHTML = chat_msg.innerHTML.replace(/;name;/gi, chat_name.outerHTML);
 	
 	let nametags = chat_msg.getElementsByClassName("player_name");
 	for (let i = 0; i < nametags.length; i++) {
