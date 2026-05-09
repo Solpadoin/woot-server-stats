@@ -213,11 +213,12 @@ h1#server_name {
 #content-container {
 	display: grid !important;
 	grid-template-columns: minmax(520px, 0.9fr) minmax(680px, 1.1fr);
+	grid-template-rows: auto auto;
 	grid-template-areas:
 		"chat maps"
 		"chat players";
 	gap: clamp(18px, 2vw, 26px);
-	align-items: stretch;
+	align-items: start;
 	border-top: 0 !important;
 	padding-top: 0 !important;
 	height: auto !important;
@@ -266,6 +267,8 @@ h1#server_name {
 	flex-direction: column !important;
 	min-width: 0;
 	min-height: 0;
+	height: clamp(520px, calc(100vh - 220px), 760px) !important;
+	max-height: 760px !important;
 }
 
 #player_list_content {
@@ -332,8 +335,10 @@ h1#server_name {
 #chat_box {
 	flex: 1 1 auto;
 	height: auto !important;
-	min-height: 500px;
+	min-height: 0 !important;
 	max-height: none !important;
+	overflow-y: auto !important;
+	overflow-x: hidden !important;
 	padding: 18px 18px 12px !important;
 	background: #020302 !important;
 	border: 0 !important;
@@ -342,6 +347,22 @@ h1#server_name {
 	font-size: 1rem !important;
 	line-height: 1.45 !important;
 	text-shadow: none !important;
+	scrollbar-color: rgba(230, 161, 58, 0.45) rgba(255, 255, 255, 0.04);
+	scrollbar-width: thin;
+}
+
+#chat_box::-webkit-scrollbar {
+	width: 10px;
+}
+
+#chat_box::-webkit-scrollbar-track {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+#chat_box::-webkit-scrollbar-thumb {
+	background: rgba(230, 161, 58, 0.42);
+	border-radius: 999px;
+	border: 2px solid #020302;
 }
 
 .chat_message {
@@ -1042,6 +1063,11 @@ td.longidle {
 	#chat_box {
 		min-height: 360px;
 		height: 48vh !important;
+	}
+
+	#chat_content {
+		height: 52vh !important;
+		max-height: none !important;
 	}
 
 	#login_but {

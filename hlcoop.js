@@ -535,10 +535,37 @@ function parse_server_name(view) {
 	document.getElementById('tab_title').textContent = DISPLAY_SERVER_NAME;
 }
 
+function escape_regex(text) {
+	return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalize_chat_message(name, msg, msgType) {
+	let normalized = (msg || "").replace(/\n$/, "");
+	let isPlayerMessage = msgType == WEBMSG_CHAT_TYPE_NORMAL || msgType == WEBMSG_CHAT_TYPE_BAD_GUY || msgType == WEBMSG_CHAT_TYPE_WEB_USER;
+	let isSystemLine = false;
+	
+	if (name && isPlayerMessage) {
+		const escapedName = escape_regex(name);
+		const webPrefix = msgType == WEBMSG_CHAT_TYPE_WEB_USER ? "(?:\\(WEB\\)\\s*)?" : "";
+		const duplicatePrefix = new RegExp("^\\s*" + webPrefix + escapedName + "\\s*:\\s*", "i");
+		normalized = normalized.replace(duplicatePrefix, "");
+		
+		const playerEvent = new RegExp("^\\s*-\\s*" + escapedName + "\\s+has\\s+(?:joined|left)\\s+the\\s+game\\b", "i");
+		isSystemLine = playerEvent.test(normalized);
+	}
+	
+	return {
+		msg: normalized,
+		showSpeaker: isPlayerMessage && !isSystemLine,
+		isSystemLine
+	};
+}
+
 function add_message(steamid64, ipStr, name, msg, time, msgType) {
 	let chatbox = document.getElementById('chat_box');
 	const epsilon = 10;
 	let scrolledToBottom = chatbox.scrollTop + chatbox.clientHeight + epsilon >= chatbox.scrollHeight;
+	let normalized = normalize_chat_message(name, msg, msgType);
 	
 	let chat_container = document.createElement('div');
 	chat_container.classList.add("chat_message");
@@ -570,7 +597,7 @@ function add_message(steamid64, ipStr, name, msg, time, msgType) {
 	}
 	
 	let chat_msg = document.createElement('span');
-	chat_msg.textContent = msg;
+	chat_msg.textContent = normalized.msg;
 	chat_msg.classList.add("chat_text");
 	
 	if (msgType == WEBMSG_CHAT_TYPE_GAME) {
@@ -589,6 +616,10 @@ function add_message(steamid64, ipStr, name, msg, time, msgType) {
 		chat_msg.classList.add("green");
 		chat_msg.title = "This message was sent by your web browser, and only to you";
 	}
+	if (normalized.isSystemLine) {
+		chat_msg.classList.add("server_msg");
+		chat_msg.title = "This message was sent by the server";
+	}
 	
 	chat_msg.innerHTML = chat_msg.innerHTML.replace(";name;", chat_name.outerHTML);
 	
@@ -599,7 +630,7 @@ function add_message(steamid64, ipStr, name, msg, time, msgType) {
 	
 	chat_container.appendChild(chat_time);
 	
-	if ((msgType == WEBMSG_CHAT_TYPE_NORMAL || msgType == WEBMSG_CHAT_TYPE_BAD_GUY || msgType == WEBMSG_CHAT_TYPE_WEB_USER) && steamid64 > 0) {
+	if (normalized.showSpeaker && steamid64 > 0) {
 		chat_name.addEventListener('click', open_player_profile);
 		chat_container.appendChild(chat_name);
 		
@@ -654,8 +685,6 @@ function parse_chat_message(view) {
 		} else if (steamid64 > 0) {
 			ipStr = msgtype == WEBMSG_CHAT_TYPE_WEB_USER ? g_web_client_ips[steamid64] : g_player_ips[steamid64];
 		}
-		
-		msg = msg.replace(/\n$/, ''); // remove trailing newline if it exists
 		
 		add_message(steamid64, ipStr, name, msg, time, msgtype);
 	}
