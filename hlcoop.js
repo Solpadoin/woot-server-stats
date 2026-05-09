@@ -1479,11 +1479,12 @@ function update_map_data() {
 		
 		// add new map boxes
 		for (let i = upcomingMapBoxes.length; i < g_map_cycle.length; i++) {
-			let map = document.createElement('a');
+			let map = document.createElement('div');
 			map.classList.add("map_container");
 		
-			let title = document.createElement('span');
+			let title = document.createElement('a');
 			title.classList.add("map_title");
+			title.target = "_blank";
 			
 			let img = document.createElement('img');
 			img.classList.add("map_image");
@@ -1578,11 +1579,19 @@ function update_map_data() {
 		let dat = get_map_dat(map);
 		let first_map = get_first_map_in_series(map);
 		
-		div.href = "http://scmapdb.wikidot.com/map:" + dat.link;
+		if (isUpcomingListItem) {
+			div.removeAttribute("href");
+			div.removeAttribute("target");
+		} else {
+			div.href = "http://scmapdb.wikidot.com/map:" + dat.link;
+		}
 		
 		let title = div.getElementsByClassName("map_title")[0]; 
 		title.title = map;
 		title.textContent = map;
+		if (isUpcomingListItem) {
+			title.href = "http://scmapdb.wikidot.com/map:" + dat.link;
+		}
 		if (map.length > 18) {
 			title.classList.add("longtext");
 		}
@@ -1634,7 +1643,9 @@ function update_map_data() {
 		fav.setAttribute("map", first_map);
 		dislike.setAttribute("map", first_map);
 		
-		div.target = "_blank";
+		if (!isUpcomingListItem) {
+			div.target = "_blank";
+		}
 		div.removeEventListener('mouseover', map_mouse_over);
 		div.addEventListener('mouseover', map_mouse_over);
 		div.removeEventListener('mousemove', map_mouse_move);
