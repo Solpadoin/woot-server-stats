@@ -551,27 +551,33 @@ function normalize_chat_message(name, msg, msgType) {
 	let normalized = (msg || "").replace(/\n$/, "");
 	let isPlayerMessage = msgType == WEBMSG_CHAT_TYPE_NORMAL || msgType == WEBMSG_CHAT_TYPE_BAD_GUY || msgType == WEBMSG_CHAT_TYPE_WEB_USER;
 	let isSystemLine = false;
+	let speakerName = name || "";
 	
 	if (name && isPlayerMessage) {
-		const normalizedName = normalize_speaker_label(name);
-		let previous;
+		let normalizedName = normalize_speaker_label(name);
+		const explicitSpeaker = normalized.match(/^\s*((?:\(WEB\)\s*)?[^:]{1,80})\s*:\s*/);
 		
+		if (explicitSpeaker) {
+			speakerName = explicitSpeaker[1].trim();
+			normalizedName = normalize_speaker_label(speakerName);
+		}
+		
+		let previous;
 		do {
 			previous = normalized;
 			normalized = normalized.replace(/^\s*((?:\(WEB\)\s*)?[^:]{1,80})\s*:\s*/, function(match, label) {
 				return normalize_speaker_label(label) == normalizedName ? "" : match;
 			});
 		} while (normalized != previous);
-		
-		const escapedName = escape_regex(name.trim());
-		const playerEvent = new RegExp("^\\s*-\\s*" + escapedName + "\\s+has\\s+(?:joined|left)\\s+the\\s+game\\b", "i");
-		isSystemLine = playerEvent.test(normalized);
 	}
+
+	isSystemLine = /^\s*-\s+.+\s+has\s+(?:joined|left)\s+the\s+game\b/i.test(normalized);
 	
 	return {
 		msg: normalized,
 		showSpeaker: isPlayerMessage && !isSystemLine,
-		isSystemLine
+		isSystemLine,
+		speakerName
 	};
 }
 
@@ -598,10 +604,10 @@ function add_message(steamid64, ipStr, name, msg, time, msgType) {
 	
 	let chat_name = document.createElement('span');
 	chat_name.classList.add("player_name");
-	chat_name.textContent = name;
+	chat_name.textContent = normalized.speakerName;
 	chat_name.setAttribute("id", steamid64);
-	chat_name.setAttribute("name", name);
-	chat_name.title = name;
+	chat_name.setAttribute("name", normalized.speakerName);
+	chat_name.title = normalized.speakerName;
 	if (msgType == WEBMSG_CHAT_TYPE_WEB_USER) {
 		if (!/^\s*\(WEB\)\s*/i.test(chat_name.textContent)) {
 			chat_name.textContent = "(WEB) " + chat_name.textContent;

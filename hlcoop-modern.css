@@ -468,6 +468,96 @@ h1#server_name {
 	display: flex !important;
 }
 
+#upcoming_maps_header {
+	margin: 18px 0 10px !important;
+	color: var(--hl-text) !important;
+	font-size: 1.05rem !important;
+}
+
+#upcoming_maps {
+	margin-top: 12px !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
+}
+
+#upcoming_maps_grid {
+	display: grid !important;
+	grid-template-columns: 1fr !important;
+	gap: 8px !important;
+	max-height: 560px;
+	overflow-y: auto;
+	padding-right: 4px;
+}
+
+#upcoming_maps .map_container {
+	display: grid !important;
+	grid-template-columns: 96px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 14px;
+	aspect-ratio: auto !important;
+	min-height: 64px !important;
+	padding: 8px 12px 8px 8px !important;
+	border-radius: 10px !important;
+	background: rgba(4, 6, 5, 0.78) !important;
+	box-shadow: none !important;
+	white-space: normal !important;
+}
+
+#upcoming_maps .map_container:hover {
+	transform: none !important;
+	background: rgba(255, 177, 58, 0.08) !important;
+}
+
+#upcoming_maps .map_title {
+	position: static !important;
+	min-height: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	font-size: 0.92rem !important;
+	line-height: 1.2 !important;
+	white-space: nowrap;
+}
+
+#upcoming_maps .map_image {
+	grid-column: 1;
+	grid-row: 1;
+	width: 96px !important;
+	height: 54px !important;
+	border-radius: 8px;
+	object-fit: cover !important;
+}
+
+#upcoming_maps .like_button,
+#upcoming_maps .fav_button,
+#upcoming_maps .dislike_button {
+	position: static !important;
+	grid-row: 1;
+	width: 24px !important;
+	height: 24px !important;
+	padding: 4px !important;
+	opacity: 0.62 !important;
+}
+
+#upcoming_maps .like_button {
+	grid-column: 3;
+}
+
+#upcoming_maps .fav_button {
+	grid-column: 3;
+	margin-left: 30px;
+}
+
+#upcoming_maps .dislike_button {
+	grid-column: 3;
+	margin-left: 60px;
+}
+
+#upcoming_maps .map_container::after {
+	display: none !important;
+}
+
 .map_label {
 	display: block !important;
 	margin: 0 0 8px !important;
@@ -708,6 +798,28 @@ table {
 #player_list2:not(.web_users) th:nth-child(n+7),
 #player_list2:not(.web_users) td:nth-child(n+7) {
 	display: none !important;
+}
+
+#player_list1.stat_view:not(.web_users) th:nth-child(n+2):nth-child(-n+6),
+#player_list1.stat_view:not(.web_users) td:nth-child(n+2):nth-child(-n+6),
+#player_list2.stat_view:not(.web_users) th:nth-child(n+2):nth-child(-n+6),
+#player_list2.stat_view:not(.web_users) td:nth-child(n+2):nth-child(-n+6) {
+	display: none !important;
+}
+
+#player_list1.stat_view:not(.web_users) th:nth-child(7),
+#player_list1.stat_view:not(.web_users) td:nth-child(7),
+#player_list1.stat_view:not(.web_users) th:nth-child(8),
+#player_list1.stat_view:not(.web_users) td:nth-child(8),
+#player_list1.stat_view:not(.web_users) th:nth-child(9),
+#player_list1.stat_view:not(.web_users) td:nth-child(9),
+#player_list2.stat_view:not(.web_users) th:nth-child(7),
+#player_list2.stat_view:not(.web_users) td:nth-child(7),
+#player_list2.stat_view:not(.web_users) th:nth-child(8),
+#player_list2.stat_view:not(.web_users) td:nth-child(8),
+#player_list2.stat_view:not(.web_users) th:nth-child(9),
+#player_list2.stat_view:not(.web_users) td:nth-child(9) {
+	display: table-cell !important;
 }
 
 #player_list1.web_users th:nth-child(n+2):nth-child(-n+9),
