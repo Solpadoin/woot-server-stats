@@ -1900,18 +1900,8 @@ function setup_openid_link() {
 		return;
 	}
 	
-	let return_to = window.location.origin + window.location.pathname;
-	let realm = window.location.origin;
-
-	let openid_link =
-		"https://steamcommunity.com/openid/login?" +
-		"openid.ns=http://specs.openid.net/auth/2.0" +
-		"&openid.mode=checkid_setup" +
-		"&openid.return_to=" + encodeURIComponent(return_to) +
-		"&openid.realm=" + encodeURIComponent(realm) +
-		"&openid.identity=http://specs.openid.net/auth/2.0/identifier_select" +
-		"&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select";
-
+	let return_to = window.location.origin + window.location.pathname;	
+	let openid_link = "https://steamcommunity.com/openid/login?openid.ns=http://specs.openid.net/auth/2.0&openid.mode=checkid_setup&openid.return_to=" + return_to + "&openid.realm=" + return_to +"&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select";
 	document.getElementById("login_but").setAttribute("href", openid_link);
 }
 
