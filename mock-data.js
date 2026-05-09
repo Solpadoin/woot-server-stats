@@ -57,13 +57,19 @@
 
 	function shouldUseMock() {
 		const params = new URLSearchParams(window.location.search);
+		const isLocalHost = ["", "localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+
+		if (!isLocalHost) {
+			return false;
+		}
+
 		if (params.get("mock") === "0") {
 			return false;
 		}
 		if (params.get("mock") === "1") {
 			return true;
 		}
-		return ["", "localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+		return true;
 	}
 
 	function aliasDaysAgo(days) {
@@ -137,7 +143,7 @@
 		g_player_states = states;
 		g_player_ids = ids;
 		g_map_total = 776;
-		g_server_name = "Half-Life Co-op";
+		g_server_name = "Half-Life Co-op | Custom maps";
 		g_most_active_id = ids[0];
 		g_update_time = nowSeconds() - 78;
 	}

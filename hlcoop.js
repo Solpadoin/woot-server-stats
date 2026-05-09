@@ -8,7 +8,8 @@ var g_player_data = []; // players currently in the server
 var g_web_player_data = []; // web client info
 var g_player_states = {}; // extra player info and map stats by steam id
 var g_player_clients = {}; // client details by steam id
-var g_server_name = "Half-Life Co-op";
+const DISPLAY_SERVER_NAME = "Half-Life Co-op | Custom maps";
+var g_server_name = DISPLAY_SERVER_NAME;
 var g_selected_map = "";
 var g_reset_table_timer;
 var g_mouseover_state = false;
@@ -464,7 +465,7 @@ function refresh_player_table() {
 		el.textContent = g_player_data.length;
 	});
 	
-	document.getElementById('tab_title').textContent = "(" + g_player_data.length + "/32) " + g_current_map + " - " + g_server_name;	
+	document.getElementById('tab_title').textContent = "(" + g_player_data.length + "/32) " + g_current_map + " - " + DISPLAY_SERVER_NAME;	
 	
 	if (!g_wide_mode && oldRowCount != plist.rows.length) {
 		let chatbox = document.getElementById('chat_box');	
@@ -530,8 +531,8 @@ function parse_server_name(view) {
 	let name = read_string(view, offset);
 	
 	g_server_name = name;
-	document.getElementById('server_name').textContent = name;
-	document.getElementById('tab_title').textContent = name;
+	document.getElementById('server_name').textContent = DISPLAY_SERVER_NAME;
+	document.getElementById('tab_title').textContent = DISPLAY_SERVER_NAME;
 }
 
 function add_message(steamid64, ipStr, name, msg, time, msgType) {

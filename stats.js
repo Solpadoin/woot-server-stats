@@ -1,7 +1,8 @@
 var g_player_ids = [];
 var g_filtered_ids = [];
 var g_player_states = {};
-var g_server_name = "Half-Life Co-op";
+const DISPLAY_SERVER_NAME = "Half-Life Co-op | Custom maps";
+var g_server_name = DISPLAY_SERVER_NAME;
 var g_map_total = 0;
 var g_steamid = 0;
 var g_update_time = 0;
@@ -55,8 +56,8 @@ async function load_misc_data() {
 		}
 	}
 	
-	document.getElementById('tab_title').textContent = "Player stats - " + g_server_name;
-	document.getElementById('server_name').textContent = g_server_name;
+	document.getElementById('tab_title').textContent = "Player stats - " + DISPLAY_SERVER_NAME;
+	document.getElementById('server_name').textContent = DISPLAY_SERVER_NAME;
 	
 	refresh_update_time();
 	setInterval(refresh_update_time, 1000, -1);
