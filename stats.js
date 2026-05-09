@@ -8,8 +8,41 @@ var g_steamid = 0;
 var g_update_time = 0;
 var g_player_clients = {};
 var g_is_stats_page = true;
+var g_dashboard_url = "woot-server-stats/";
 var result_offset = 0;
 var g_most_active_id = 0;
+
+async function load_env_config() {
+	try {
+		const response = await fetch("configs/env?t=" + Date.now());
+		if (!response.ok) {
+			return;
+		}
+		
+		const text = await response.text();
+		const lines = text.split(/\r?\n/);
+		
+		for (const line of lines) {
+			const trimmed = line.trim();
+			if (!trimmed || trimmed.startsWith("#")) {
+				continue;
+			}
+			
+			if (trimmed.startsWith("DASHBOARD_URL=")) {
+				g_dashboard_url = trimmed.substring("DASHBOARD_URL=".length).trim();
+			}
+		}
+	} catch (error) {
+		console.warn("Unable to load configs/env, using default dashboard URL", error);
+	}
+}
+
+function setup_dashboard_link() {
+	let dashboardLink = document.getElementById("dashboard_link");
+	if (dashboardLink && g_dashboard_url) {
+		dashboardLink.setAttribute("href", g_dashboard_url);
+	}
+}
 
 function refresh_update_time() {
 	let timeText = new Date(g_update_time*1000).toLocaleString(undefined, {
@@ -333,6 +366,8 @@ function update_stat_table() {
 }
 
 async function setup() {	
+	await load_env_config();
+	setup_dashboard_link();
 	await load_misc_data();
 
 	if (window.HLCOOP_MOCK && window.HLCOOP_MOCK.shouldUseMock()) {

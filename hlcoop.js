@@ -11,6 +11,7 @@ var g_player_clients = {}; // client details by steam id
 const DISPLAY_SERVER_NAME = "Half-Life Co-op | Custom maps";
 var g_server_name = DISPLAY_SERVER_NAME;
 var g_steam_openid_url = "";
+var g_dashboard_url = "woot-server-stats/";
 var g_selected_map = "";
 var g_reset_table_timer;
 var g_mouseover_state = false;
@@ -1836,16 +1837,28 @@ async function load_env_config() {
 			
 			if (trimmed.startsWith("STEAM_OPENID_URL=")) {
 				g_steam_openid_url = trimmed.substring("STEAM_OPENID_URL=".length).trim();
-				return;
+				continue;
+			}
+			
+			if (trimmed.startsWith("DASHBOARD_URL=")) {
+				g_dashboard_url = trimmed.substring("DASHBOARD_URL=".length).trim();
+				continue;
 			}
 			
 			if (trimmed.startsWith("https://steamcommunity.com/openid/login?")) {
 				g_steam_openid_url = trimmed;
-				return;
+				continue;
 			}
 		}
 	} catch (error) {
 		console.warn("Unable to load configs/env, using dynamic Steam OpenID URL", error);
+	}
+}
+
+function setup_dashboard_link() {
+	let dashboardLink = document.getElementById("dashboard_link");
+	if (dashboardLink && g_dashboard_url) {
+		dashboardLink.setAttribute("href", g_dashboard_url);
 	}
 }
 
@@ -1963,6 +1976,7 @@ function preload_image(src) {
 async function setup() {
 	await load_shared_html();
 	await load_env_config();
+	setup_dashboard_link();
 	
 	// prevent constantly reloading icons as the table refreshes, preventing them from finishing on slow connections
 	preload_image("icon/hot.png");
