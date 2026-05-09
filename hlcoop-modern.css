@@ -468,6 +468,14 @@ h1#server_name {
 	display: flex !important;
 }
 
+#filter_maps_container {
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 12px !important;
+	padding: 0 !important;
+	background: transparent !important;
+}
+
 #upcoming_maps_header {
 	margin: 18px 0 10px !important;
 	color: var(--hl-text) !important;
@@ -485,23 +493,24 @@ h1#server_name {
 #upcoming_maps_grid {
 	display: grid !important;
 	grid-template-columns: 1fr !important;
-	gap: 8px !important;
-	max-height: 560px;
+	gap: 7px !important;
+	max-height: 520px;
 	overflow-y: auto;
-	padding-right: 4px;
+	padding: 2px 4px 2px 0;
 }
 
 #upcoming_maps .map_container {
 	display: grid !important;
-	grid-template-columns: 96px minmax(0, 1fr) auto;
+	grid-template-columns: 86px minmax(0, 1fr) 98px;
 	align-items: center;
-	gap: 14px;
+	gap: 12px;
 	aspect-ratio: auto !important;
-	min-height: 64px !important;
-	padding: 8px 12px 8px 8px !important;
+	min-height: 58px !important;
+	padding: 7px 10px 7px 7px !important;
 	border-radius: 10px !important;
-	background: rgba(4, 6, 5, 0.78) !important;
-	box-shadow: none !important;
+	background: linear-gradient(90deg, rgba(4, 6, 5, 0.92), rgba(18, 20, 16, 0.76)) !important;
+	border-color: rgba(255, 177, 58, 0.18) !important;
+	box-shadow: inset 0 1px rgba(255, 255, 255, 0.035) !important;
 	white-space: normal !important;
 }
 
@@ -512,19 +521,23 @@ h1#server_name {
 
 #upcoming_maps .map_title {
 	position: static !important;
+	grid-column: 2;
+	grid-row: 1;
 	min-height: 0 !important;
 	padding: 0 !important;
 	background: transparent !important;
 	font-size: 0.92rem !important;
 	line-height: 1.2 !important;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 #upcoming_maps .map_image {
 	grid-column: 1;
 	grid-row: 1;
-	width: 96px !important;
-	height: 54px !important;
+	width: 86px !important;
+	height: 48px !important;
 	border-radius: 8px;
 	object-fit: cover !important;
 }
@@ -534,28 +547,91 @@ h1#server_name {
 #upcoming_maps .dislike_button {
 	position: static !important;
 	grid-row: 1;
+	grid-column: 3;
 	width: 24px !important;
 	height: 24px !important;
 	padding: 4px !important;
 	opacity: 0.62 !important;
+	align-self: center;
+	justify-self: end;
 }
 
 #upcoming_maps .like_button {
-	grid-column: 3;
+	margin-right: 64px;
 }
 
 #upcoming_maps .fav_button {
-	grid-column: 3;
-	margin-left: 30px;
+	margin-right: 32px;
 }
 
 #upcoming_maps .dislike_button {
-	grid-column: 3;
-	margin-left: 60px;
+	margin-right: 0;
 }
 
 #upcoming_maps .map_container::after {
 	display: none !important;
+}
+
+#map_opinion_popover {
+	position: fixed;
+	z-index: 50;
+	pointer-events: none;
+	padding: 12px;
+	border: 1px solid rgba(255, 177, 58, 0.28);
+	border-radius: 14px;
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 34%),
+		rgba(9, 10, 8, 0.96);
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.48), 0 0 22px rgba(255, 177, 58, 0.1);
+	backdrop-filter: blur(10px);
+}
+
+#map_opinion_popover.hidden {
+	display: none !important;
+}
+
+.map_opinion_title {
+	margin: 0 0 9px;
+	color: var(--hl-orange);
+	font-size: 0.98rem;
+	font-weight: 800;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.map_opinion_table {
+	min-width: 0 !important;
+	font-size: 0.78rem !important;
+}
+
+.map_opinion_table th,
+.map_opinion_table td {
+	padding: 6px 7px !important;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.map_opinion_table th:first-child,
+.map_opinion_table td:first-child {
+	max-width: 140px;
+}
+
+.opinion_like {
+	color: var(--hl-green) !important;
+}
+
+.opinion_dislike {
+	color: var(--hl-red) !important;
+}
+
+.opinion_favorite {
+	color: #62e5e5 !important;
+}
+
+.opinion_none {
+	color: var(--hl-muted) !important;
 }
 
 .map_label {

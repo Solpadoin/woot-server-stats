@@ -10,6 +10,7 @@ var g_player_states = {}; // extra player info and map stats by steam id
 var g_player_clients = {}; // client details by steam id
 const DISPLAY_SERVER_NAME = "Half-Life Co-op | Custom maps";
 var g_server_name = DISPLAY_SERVER_NAME;
+var g_steam_openid_url = "";
 var g_selected_map = "";
 var g_reset_table_timer;
 var g_mouseover_state = false;
@@ -974,11 +975,19 @@ function map_mouse_over(ev) {
 	g_mouseover_state = true;
 	g_selected_map = ev.currentTarget.getAttribute("map");
 	update_table_state_all();
+	show_map_opinion_popover(ev.currentTarget);
+}
+
+function map_mouse_move(ev) {
+	if (g_mouseover_state) {
+		show_map_opinion_popover(ev.currentTarget);
+	}
 }
 
 function map_mouse_out(ev) {
 	clearTimeout(g_reset_table_timer);
 	g_mouseover_state = false;
+	hide_map_opinion_popover();
 	g_reset_table_timer = setTimeout(function() {
 		if (g_mouseover_state) {
 			return;
@@ -986,6 +995,123 @@ function map_mouse_out(ev) {
 		g_selected_map = "";
 		update_table_state_all();
 	}, 500);
+}
+
+function format_map_opinion(player_stats) {
+	if (!player_stats || !player_stats.lastPlay || !player_stats.totalPlays) {
+		return "NONE";
+	}
+	if (player_stats.rating == 1) {
+		return "LIKE";
+	}
+	if (player_stats.rating == 2) {
+		return "DISLIKE";
+	}
+	if (player_stats.rating == 3) {
+		return "FAVORITE";
+	}
+	return "NONE";
+}
+
+function format_map_last_play(player_stats) {
+	if (!player_stats || !player_stats.lastPlay || !player_stats.totalPlays) {
+		return "NEVER";
+	}
+	
+	let minutesSinceEpoch = Math.floor(Date.now() / (1000*60));
+	let timeSincePlay = minutesSinceEpoch - player_stats.lastPlay;
+	let minutes = Math.round(timeSincePlay);
+	let hours = Math.round(timeSincePlay / 60);
+	let days = Math.round(timeSincePlay / (60 * 24));
+	
+	if (hours > 48) {
+		return days + "d";
+	}
+	if (minutes > 120) {
+		return hours + "h";
+	}
+	return minutes + "m";
+}
+
+function show_map_opinion_popover(mapEl) {
+	let popover = document.getElementById("map_opinion_popover");
+	if (!popover || !mapEl) {
+		return;
+	}
+	
+	let map = mapEl.getAttribute("map");
+	if (!map) {
+		return;
+	}
+	
+	let first_map = get_first_map_in_series(map);
+	popover.innerHTML = "";
+	
+	let title = document.createElement("div");
+	title.classList.add("map_opinion_title");
+	title.textContent = map;
+	popover.appendChild(title);
+	
+	let table = document.createElement("table");
+	table.classList.add("map_opinion_table");
+	let thead = document.createElement("thead");
+	let headerRow = document.createElement("tr");
+	["Player", "Opinion", "Last", "Plays"].forEach(function(label) {
+		let th = document.createElement("th");
+		th.textContent = label;
+		headerRow.appendChild(th);
+	});
+	thead.appendChild(headerRow);
+	table.appendChild(thead);
+	
+	let tbody = document.createElement("tbody");
+	let players = g_player_data.length ? g_player_data : [];
+	for (let i = 0; i < players.length; i++) {
+		let dat = players[i];
+		let row = document.createElement("tr");
+		let player_state = g_player_states[dat.steamid64];
+		let player_stats = player_state ? player_state.mapstats[first_map] : undefined;
+		let opinion = format_map_opinion(player_stats);
+		
+		[dat.name, opinion, format_map_last_play(player_stats), player_stats && player_stats.totalPlays ? player_stats.totalPlays : "0"].forEach(function(value, index) {
+			let td = document.createElement("td");
+			td.textContent = value;
+			if (index == 1) {
+				td.classList.add("opinion_" + opinion.toLowerCase());
+			}
+			row.appendChild(td);
+		});
+		tbody.appendChild(row);
+	}
+	
+	if (!players.length) {
+		let row = document.createElement("tr");
+		let td = document.createElement("td");
+		td.colSpan = 4;
+		td.textContent = "No active players";
+		row.appendChild(td);
+		tbody.appendChild(row);
+	}
+	
+	table.appendChild(tbody);
+	popover.appendChild(table);
+	
+	let rect = mapEl.getBoundingClientRect();
+	let width = Math.min(420, Math.max(320, Math.round(window.innerWidth * 0.26)));
+	let left = Math.max(16, rect.left - width - 18);
+	let top = Math.max(16, Math.min(rect.top, window.innerHeight - 420));
+	
+	popover.style.width = width + "px";
+	popover.style.left = left + "px";
+	popover.style.top = top + "px";
+	popover.classList.remove("hidden");
+}
+
+function hide_map_opinion_popover() {
+	let popover = document.getElementById("map_opinion_popover");
+	if (popover) {
+		popover.classList.add("hidden");
+	}
 }
 
 function rate_map(ev) {
@@ -1497,6 +1623,8 @@ function update_map_data() {
 		div.target = "_blank";
 		div.removeEventListener('mouseover', map_mouse_over);
 		div.addEventListener('mouseover', map_mouse_over);
+		div.removeEventListener('mousemove', map_mouse_move);
+		div.addEventListener('mousemove', map_mouse_move);
 		div.removeEventListener('mouseout', map_mouse_out);
 		div.addEventListener('mouseout', map_mouse_out);
 		
@@ -1690,7 +1818,43 @@ async function downloadJson(url) {
 	}
 }
 
+async function load_env_config() {
+	try {
+		const response = await fetch("configs/env?t=" + Date.now());
+		if (!response.ok) {
+			return;
+		}
+		
+		const text = await response.text();
+		const lines = text.split(/\r?\n/);
+		
+		for (const line of lines) {
+			const trimmed = line.trim();
+			if (!trimmed || trimmed.startsWith("#")) {
+				continue;
+			}
+			
+			if (trimmed.startsWith("STEAM_OPENID_URL=")) {
+				g_steam_openid_url = trimmed.substring("STEAM_OPENID_URL=".length).trim();
+				return;
+			}
+			
+			if (trimmed.startsWith("https://steamcommunity.com/openid/login?")) {
+				g_steam_openid_url = trimmed;
+				return;
+			}
+		}
+	} catch (error) {
+		console.warn("Unable to load configs/env, using dynamic Steam OpenID URL", error);
+	}
+}
+
 function setup_openid_link() {
+	if (g_steam_openid_url) {
+		document.getElementById("login_but").setAttribute("href", g_steam_openid_url);
+		return;
+	}
+	
 	let return_to = window.location.origin + window.location.pathname;	
 	let openid_link = "https://steamcommunity.com/openid/login?openid.ns=http://specs.openid.net/auth/2.0&openid.mode=checkid_setup&openid.return_to=" + return_to + "&openid.realm=" + return_to +"&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select";
 	document.getElementById("login_but").setAttribute("href", openid_link);
@@ -1798,6 +1962,7 @@ function preload_image(src) {
 
 async function setup() {
 	await load_shared_html();
+	await load_env_config();
 	
 	// prevent constantly reloading icons as the table refreshes, preventing them from finishing on slow connections
 	preload_image("icon/hot.png");

@@ -906,6 +906,7 @@ Rejoining the server on the same map does not randomize the next map. This preve
 						</div>
 					</div>
 					<button id="show_maps_button">Show upcoming maps</button>
+					<div id="map_opinion_popover" class="hidden"></div>
 					<h2 id="upcoming_maps_header"><span id="upcoming_title">Upcoming maps</span> (<span id="upcoming_maps_count">?</span>) <span class="tooltip" title="Maps displayed here depend on who is currently in the server. A new player joining may cause this map list to change completely.
 
 The server tries to pick maps that haven't been played in the longest time. Every map should feel fresh and no one should have to replay the same map for another month or so. Map ratings determine selection order after the upcoming maps pool is filled.
@@ -926,12 +927,6 @@ Green light = Positive ratings. High priority. Played after new maps.
 Orange light = Mixed ratings. Normal priority. Selected if no rainbow/green maps exist.
 No light = No ratings. Normal priority.
 Red light = Negative ratings. Low priority. Selected only if all other maps are red.">(?)</span></h2>
-					<div id="upcoming_maps">
-						<div id="upcoming_maps_grid"></div>
-						<div id="empty_notice">
-							Upcoming maps are not known until someone joins the server
-						</div>
-					</div>
 					<div id="filter_maps_container">
 						<input id="maps_filter" type="text" placeholder="Search..." onchange = "filter_maps();" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" title="Filter maps by name">
 						<select id="map-filter-type">
@@ -943,6 +938,12 @@ Red light = Negative ratings. Low priority. Selected only if all other maps are 
 						</select>
 						<button id="hide_maps_button">Hide maps</button>
 						<input type="checkbox" id="hide_maps_cb" class="hidden"/>
+					</div>
+					<div id="upcoming_maps">
+						<div id="upcoming_maps_grid"></div>
+						<div id="empty_notice">
+							Upcoming maps are not known until someone joins the server
+						</div>
 					</div>
 				</div>
 			</div>
