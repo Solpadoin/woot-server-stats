@@ -539,17 +539,31 @@ function escape_regex(text) {
 	return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function normalize_speaker_label(text) {
+	return (text || "")
+		.replace(/^\s*\(WEB\)\s*/i, "")
+		.replace(/:\s*$/, "")
+		.trim()
+		.toLowerCase();
+}
+
 function normalize_chat_message(name, msg, msgType) {
 	let normalized = (msg || "").replace(/\n$/, "");
 	let isPlayerMessage = msgType == WEBMSG_CHAT_TYPE_NORMAL || msgType == WEBMSG_CHAT_TYPE_BAD_GUY || msgType == WEBMSG_CHAT_TYPE_WEB_USER;
 	let isSystemLine = false;
 	
 	if (name && isPlayerMessage) {
-		const escapedName = escape_regex(name);
-		const webPrefix = msgType == WEBMSG_CHAT_TYPE_WEB_USER ? "(?:\\(WEB\\)\\s*)?" : "";
-		const duplicatePrefix = new RegExp("^\\s*" + webPrefix + escapedName + "\\s*:\\s*", "i");
-		normalized = normalized.replace(duplicatePrefix, "");
+		const normalizedName = normalize_speaker_label(name);
+		let previous;
 		
+		do {
+			previous = normalized;
+			normalized = normalized.replace(/^\s*((?:\(WEB\)\s*)?[^:]{1,80})\s*:\s*/, function(match, label) {
+				return normalize_speaker_label(label) == normalizedName ? "" : match;
+			});
+		} while (normalized != previous);
+		
+		const escapedName = escape_regex(name.trim());
 		const playerEvent = new RegExp("^\\s*-\\s*" + escapedName + "\\s+has\\s+(?:joined|left)\\s+the\\s+game\\b", "i");
 		isSystemLine = playerEvent.test(normalized);
 	}
@@ -589,7 +603,9 @@ function add_message(steamid64, ipStr, name, msg, time, msgType) {
 	chat_name.setAttribute("name", name);
 	chat_name.title = name;
 	if (msgType == WEBMSG_CHAT_TYPE_WEB_USER) {
-		chat_name.textContent = "(WEB) " + chat_name.textContent;
+		if (!/^\s*\(WEB\)\s*/i.test(chat_name.textContent)) {
+			chat_name.textContent = "(WEB) " + chat_name.textContent;
+		}
 		chat_name.classList.add("web_chat");
 	}
 	if (msgType == WEBMSG_CHAT_TYPE_BAD_GUY) {
@@ -1962,12 +1978,12 @@ async function setup() {
 	}
 	
 	document.getElementById("hide_maps_button").addEventListener("click", () => {
-		document.getElementById("hide_maps_cb").checked = true;
-		handle_resize();
+		document.getElementById("hide_maps_cb").checked = false;
+		document.getElementById("content").classList.remove("show_upcoming");
 	});
 	document.getElementById("show_maps_button").addEventListener("click", () => {
-		document.getElementById("hide_maps_cb").checked = false;
-		handle_resize();
+		document.getElementById("hide_maps_cb").checked = true;
+		document.getElementById("content").classList.add("show_upcoming");
 		update_map_data();
 	});
 }
@@ -2025,7 +2041,6 @@ function handle_resize() {
 	let content = document.getElementById("content");
 	
 	g_hide_maps = false;
-	document.getElementById("hide_maps_cb").checked = false;
 	content.classList.remove("wide");
 	content.classList.remove("compact");
 	content.classList.remove("hide_maps");

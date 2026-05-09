@@ -454,8 +454,18 @@ h1#server_name {
 
 #upcoming_maps_header,
 #upcoming_maps,
-#filter_maps_container {
+#filter_maps_container,
+#hide_maps_button {
 	display: none !important;
+}
+
+#content.show_upcoming #upcoming_maps_header,
+#content.show_upcoming #upcoming_maps {
+	display: block !important;
+}
+
+#content.show_upcoming #filter_maps_container {
+	display: flex !important;
 }
 
 .map_label {
@@ -589,7 +599,22 @@ h1#server_name {
 
 #show_maps_button,
 #hide_maps_button {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	margin: 4px auto 0 !important;
+}
+
+#content.show_upcoming #show_maps_button {
 	display: none !important;
+}
+
+#content:not(.show_upcoming) #hide_maps_button {
+	display: none !important;
+}
+
+#content.show_upcoming #hide_maps_button {
+	display: inline-flex !important;
 }
 
 #show_maps_button,
