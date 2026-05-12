@@ -44,6 +44,7 @@ var g_wide_mode = false;
 var g_hide_maps = false;
 var g_max_player_list_rows = 128; // TODO: send web client limit from server
 var g_reload_map_images = true;
+const DEFAULT_UPCOMING_MAP_LIMIT = 7;
 
 var debug_logging = false;
 
@@ -1489,14 +1490,25 @@ function update_map_data() {
 	let mapFilterType = document.getElementById("map-filter-type").value;
 	let showingAllMaps = mapFilterType != "opt-upcoming";
 	let displayMaps = showingAllMaps ? g_map_cycle.map(series => series[0]) : Array.from(g_upcoming_maps);
+	if (!showingAllMaps && displayMaps.length == 0 && g_map_cycle.length > 0) {
+		displayMaps = g_map_cycle.slice(0, DEFAULT_UPCOMING_MAP_LIMIT).map(series => series[0]);
+	}
+	let requiredBoxCount = displayMaps.length;
 	
 	let upcomingMapBoxes = upcoming.querySelectorAll('.map_container');
 	
-	if (upcomingMapBoxes.length < g_map_cycle.length) {
+	if (upcomingMapBoxes.length > requiredBoxCount) {
+		for (let i = upcomingMapBoxes.length - 1; i >= requiredBoxCount; i--) {
+			upcomingMapBoxes[i].remove();
+		}
+		upcomingMapBoxes = upcoming.querySelectorAll('.map_container');
+	}
+	
+	if (upcomingMapBoxes.length < requiredBoxCount) {
 		upcomingMapBoxes = upcoming.querySelectorAll('.map_container');
 		
 		// add new map boxes
-		for (let i = upcomingMapBoxes.length; i < g_map_cycle.length; i++) {
+		for (let i = upcomingMapBoxes.length; i < requiredBoxCount; i++) {
 			let map = document.createElement('div');
 			map.classList.add("map_container");
 		
@@ -1691,6 +1703,9 @@ function update_map_data() {
 	g_reload_map_images = false;
 	
 	update_map_metadata();
+	if (!showingAllMaps) {
+		document.getElementById('upcoming_maps_count').textContent = displayMaps.length;
+	}
 }
 
 function update_map_ratings() {
