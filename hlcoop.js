@@ -15,6 +15,8 @@ var g_dashboard_url = "/woot-server-stats/";
 var g_selected_map = "";
 var g_reset_table_timer;
 var g_mouseover_state = false;
+var g_open_map_opinion_el = null;
+var g_map_opinion_animating = false;
 var g_auth_params;
 var g_auth_token;
 var g_map_data = {}; // information about each map (link)
@@ -973,22 +975,44 @@ function finish_logout() {
 
 
 function map_mouse_over(ev) {
-	g_mouseover_state = true;
-	g_selected_map = ev.currentTarget.getAttribute("map");
-	update_table_state_all();
-	show_map_opinion_popover(ev.currentTarget);
-}
-
-function map_mouse_move(ev) {
-	if (g_mouseover_state) {
-		show_map_opinion_popover(ev.currentTarget);
+	if (g_map_opinion_animating) {
+		return;
 	}
+	
+	let target = ev.currentTarget;
+	if (g_open_map_opinion_el == target) {
+		return;
+	}
+	
+	g_map_opinion_animating = true;
+	if (g_open_map_opinion_el) {
+		g_open_map_opinion_el.classList.remove("show_opinions");
+	}
+	
+	g_mouseover_state = true;
+	g_selected_map = target.getAttribute("map");
+	target.classList.add("show_opinions");
+	g_open_map_opinion_el = target;
+	update_table_state_all();
+	setTimeout(function() {
+		g_map_opinion_animating = false;
+	}, 240);
 }
 
 function map_mouse_out(ev) {
 	clearTimeout(g_reset_table_timer);
 	g_mouseover_state = false;
-	hide_map_opinion_popover();
+	let target = ev.currentTarget;
+	g_map_opinion_animating = true;
+	setTimeout(function() {
+		if (g_open_map_opinion_el == target && !target.matches(":hover")) {
+			target.classList.remove("show_opinions");
+			g_open_map_opinion_el = null;
+		}
+	}, 40);
+	setTimeout(function() {
+		g_map_opinion_animating = false;
+	}, 260);
 	g_reset_table_timer = setTimeout(function() {
 		if (g_mouseover_state) {
 			return;
@@ -1034,7 +1058,7 @@ function format_map_last_play(player_stats) {
 	return minutes + "m";
 }
 
-function show_map_opinion_popover(mapEl, reveal = true) {
+function render_map_opinion_dropdown(mapEl) {
 	if (!mapEl) {
 		return;
 	}
@@ -1100,15 +1124,6 @@ function show_map_opinion_popover(mapEl, reveal = true) {
 	
 	table.appendChild(tbody);
 	dropdown.appendChild(table);
-	if (reveal) {
-		mapEl.classList.add("show_opinions");
-	}
-}
-
-function hide_map_opinion_popover() {
-	document.querySelectorAll(".map_container.show_opinions").forEach(function(mapEl) {
-		mapEl.classList.remove("show_opinions");
-	});
 }
 
 function rate_map(ev) {
@@ -1471,6 +1486,9 @@ function update_map_data() {
 	update_current_next_maps();
 	
 	let upcoming = document.getElementById('upcoming_maps_grid');
+	let mapFilterType = document.getElementById("map-filter-type").value;
+	let showingAllMaps = mapFilterType != "opt-upcoming";
+	let displayMaps = showingAllMaps ? g_map_cycle.map(series => series[0]) : Array.from(g_upcoming_maps);
 	
 	let upcomingMapBoxes = upcoming.querySelectorAll('.map_container');
 	
@@ -1515,12 +1533,15 @@ function update_map_data() {
 			
 			let opinionDropdown = document.createElement('div');
 			opinionDropdown.classList.add("map_opinion_dropdown");
+			let actions = document.createElement('div');
+			actions.classList.add("map_actions");
+			actions.appendChild(like);
+			actions.appendChild(fav);
+			actions.appendChild(dislike);
 			
 			map.appendChild(title);
 			map.appendChild(img);
-			map.appendChild(like);
-			map.appendChild(fav);
-			map.appendChild(dislike);
+			map.appendChild(actions);
 			map.appendChild(opinionDropdown);
 			upcoming.appendChild(map);
 		}
@@ -1528,18 +1549,20 @@ function update_map_data() {
 		upcomingMapBoxes = upcoming.querySelectorAll('.map_container');
 	}
 	
-	// hide removed maps
-	for (let i = g_map_cycle.length; i < upcomingMapBoxes.length; i++) {
-		upcomingMapBoxes[i].classList.add("superhidden");
-	}
-	
-	// update upcoming boxes
-	for (let i = 0; i < g_map_cycle.length && !g_hide_maps; i++) {
+	// update visible map boxes
+	for (let i = 0; i < upcomingMapBoxes.length; i++) {
 		let map = upcomingMapBoxes[i];
-		let mapname = g_map_cycle[i][0];
+		let mapname = displayMaps[i];
+		
+		if (!mapname || g_hide_maps) {
+			map.classList.add("superhidden");
+			map.classList.remove("upcoming");
+			map.classList.remove("show_opinions");
+			map.removeAttribute("map");
+			continue;
+		}
 		
 		map.setAttribute("map", mapname);
-		
 		map.classList.remove("superhidden");
 		
 		if (g_upcoming_maps.has(mapname)) {
@@ -1548,10 +1571,6 @@ function update_map_data() {
 			map.classList.remove("upcoming");
 		}
 	}
-	
-	let mapFilterType = document.getElementById("map-filter-type").value;
-	let showingAllMaps = mapFilterType != "opt-upcoming";
-	let visibleUpcomingCount = 0;
 	
 	let mystats = g_steamid > 1 ? g_player_states[g_steamid].mapstats : {};
 	
@@ -1566,16 +1585,6 @@ function update_map_data() {
 		}
 		
 		let isUpcomingListItem = div.closest("#upcoming_maps_grid") !== null;
-		if (isUpcomingListItem && !showingAllMaps && !g_upcoming_maps.has(map)) {
-			div.classList.add("superhidden");
-			div.classList.remove("show_opinions");
-			return;
-		}
-		
-		if (isUpcomingListItem && !showingAllMaps) {
-			visibleUpcomingCount += 1;
-		}
-		
 		let dat = get_map_dat(map);
 		let first_map = get_first_map_in_series(map);
 		
@@ -1647,11 +1656,11 @@ function update_map_data() {
 			div.target = "_blank";
 		}
 		div.removeEventListener('mouseover', map_mouse_over);
-		div.addEventListener('mouseover', map_mouse_over);
-		div.removeEventListener('mousemove', map_mouse_move);
-		div.addEventListener('mousemove', map_mouse_move);
 		div.removeEventListener('mouseout', map_mouse_out);
-		div.addEventListener('mouseout', map_mouse_out);
+		div.removeEventListener('mouseenter', map_mouse_over);
+		div.addEventListener('mouseenter', map_mouse_over);
+		div.removeEventListener('mouseleave', map_mouse_out);
+		div.addEventListener('mouseleave', map_mouse_out);
 		
 		// always load image for current/next
 		let img_url = "img/" + first_map + ".jpg";
@@ -1665,12 +1674,12 @@ function update_map_data() {
 		}
 		
 		if (isUpcomingListItem) {
-			show_map_opinion_popover(div, false);
+			render_map_opinion_dropdown(div);
 		}
 	});
 	
 	if (!showingAllMaps) {
-		document.getElementById('upcoming_maps_count').textContent = visibleUpcomingCount;
+		document.getElementById('upcoming_maps_count').textContent = displayMaps.length;
 	}
 	
 	if (g_reload_map_images) {
