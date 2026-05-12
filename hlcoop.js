@@ -1533,15 +1533,18 @@ function update_map_data() {
 			
 			let opinionDropdown = document.createElement('div');
 			opinionDropdown.classList.add("map_opinion_dropdown");
+			let summary = document.createElement('div');
+			summary.classList.add("map_summary");
 			let actions = document.createElement('div');
 			actions.classList.add("map_actions");
 			actions.appendChild(like);
 			actions.appendChild(fav);
 			actions.appendChild(dislike);
 			
-			map.appendChild(title);
-			map.appendChild(img);
-			map.appendChild(actions);
+			summary.appendChild(img);
+			summary.appendChild(title);
+			summary.appendChild(actions);
+			map.appendChild(summary);
 			map.appendChild(opinionDropdown);
 			upcoming.appendChild(map);
 		}
