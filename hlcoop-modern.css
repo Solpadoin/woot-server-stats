@@ -609,7 +609,7 @@ h1#server_name {
 	max-height: 0;
 	overflow: hidden;
 	opacity: 0;
-	padding: 0 12px 0 126px;
+	padding: 0 18px;
 	margin: 0;
 	background: rgba(8, 9, 7, 0.58);
 	border-top: 1px solid transparent;
@@ -622,28 +622,18 @@ h1#server_name {
 #upcoming_maps .map_container:hover .map_opinion_dropdown,
 #upcoming_maps .map_container.show_opinions .map_opinion_dropdown,
 #upcoming_maps .map_container.opinion_locked .map_opinion_dropdown {
-	max-height: 180px !important;
+	max-height: 178px !important;
 	opacity: 1 !important;
-	padding: 9px 12px 12px 126px !important;
+	padding: 12px 18px 14px !important;
 	margin: 0 0 2px !important;
 	border-top-color: rgba(255, 177, 58, 0.18) !important;
 	transform: scaleY(1) !important;
 }
 
-.map_opinion_title {
-	margin: 0 0 9px;
-	color: var(--hl-orange);
-	font-size: 0.98rem;
-	font-weight: 800;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
 .map_opinion_table {
 	width: 100% !important;
 	min-width: 0 !important;
-	font-size: 0.78rem !important;
+	font-size: 0.82rem !important;
 	table-layout: fixed !important;
 	border-radius: 8px;
 	overflow: hidden;
@@ -651,7 +641,7 @@ h1#server_name {
 
 .map_opinion_table th,
 .map_opinion_table td {
-	padding: 6px 7px !important;
+	padding: 7px 12px !important;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -659,7 +649,7 @@ h1#server_name {
 
 .map_opinion_table th:first-child,
 .map_opinion_table td:first-child {
-	width: 38%;
+	width: 42%;
 }
 
 .opinion_like {

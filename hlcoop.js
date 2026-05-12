@@ -1106,11 +1106,6 @@ function render_map_opinion_dropdown(mapEl) {
 	
 	dropdown.innerHTML = "";
 	
-	let title = document.createElement("div");
-	title.classList.add("map_opinion_title");
-	title.textContent = map;
-	dropdown.appendChild(title);
-	
 	let table = document.createElement("table");
 	table.classList.add("map_opinion_table");
 	let thead = document.createElement("thead");
