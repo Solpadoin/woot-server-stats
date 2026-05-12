@@ -1004,6 +1004,9 @@ function map_mouse_out(ev) {
 	clearTimeout(g_reset_table_timer);
 	g_mouseover_state = false;
 	let target = ev.currentTarget;
+	if (target.classList.contains("opinion_locked")) {
+		return;
+	}
 	g_map_opinion_animating = true;
 	setTimeout(function() {
 		if (g_open_map_opinion_el == target && !target.matches(":hover")) {
@@ -1021,6 +1024,32 @@ function map_mouse_out(ev) {
 		g_selected_map = "";
 		update_table_state_all();
 	}, 500);
+}
+
+function toggle_map_opinion(ev) {
+	if (ev.target.closest(".map_actions") || ev.target.closest(".map_title")) {
+		return;
+	}
+	
+	let target = ev.currentTarget;
+	if (g_open_map_opinion_el && g_open_map_opinion_el != target) {
+		g_open_map_opinion_el.classList.remove("show_opinions");
+		g_open_map_opinion_el.classList.remove("opinion_locked");
+	}
+	
+	if (target.classList.contains("opinion_locked")) {
+		target.classList.remove("show_opinions");
+		target.classList.remove("opinion_locked");
+		g_open_map_opinion_el = null;
+		g_selected_map = "";
+	} else {
+		target.classList.add("show_opinions");
+		target.classList.add("opinion_locked");
+		g_open_map_opinion_el = target;
+		g_selected_map = target.getAttribute("map");
+	}
+	
+	update_table_state_all();
 }
 
 function format_map_opinion(player_stats) {
@@ -1516,6 +1545,10 @@ function update_map_data() {
 			title.classList.add("map_title");
 			title.target = "_blank";
 			
+			let hint = document.createElement('span');
+			hint.classList.add("map_opinion_hint");
+			hint.textContent = "hover or click for player opinions";
+			
 			let img = document.createElement('img');
 			img.classList.add("map_image");
 			
@@ -1555,6 +1588,7 @@ function update_map_data() {
 			
 			summary.appendChild(img);
 			summary.appendChild(title);
+			summary.appendChild(hint);
 			summary.appendChild(actions);
 			map.appendChild(summary);
 			map.appendChild(opinionDropdown);
@@ -1573,6 +1607,7 @@ function update_map_data() {
 			map.classList.add("superhidden");
 			map.classList.remove("upcoming");
 			map.classList.remove("show_opinions");
+			map.classList.remove("opinion_locked");
 			map.removeAttribute("map");
 			continue;
 		}
@@ -1676,6 +1711,10 @@ function update_map_data() {
 		div.addEventListener('mouseenter', map_mouse_over);
 		div.removeEventListener('mouseleave', map_mouse_out);
 		div.addEventListener('mouseleave', map_mouse_out);
+		if (isUpcomingListItem) {
+			div.removeEventListener('click', toggle_map_opinion);
+			div.addEventListener('click', toggle_map_opinion);
+		}
 		
 		// always load image for current/next
 		let img_url = "img/" + first_map + ".jpg";

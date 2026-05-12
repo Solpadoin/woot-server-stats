@@ -516,10 +516,12 @@ h1#server_name {
 #upcoming_maps .map_summary {
 	display: grid;
 	grid-template-columns: 112px minmax(0, 1fr) 128px;
+	grid-template-rows: auto auto;
 	align-items: center;
 	column-gap: 14px;
 	min-height: 70px;
 	padding: 0 12px 0 0;
+	cursor: pointer;
 }
 
 #upcoming_maps .map_container:hover {
@@ -527,9 +529,15 @@ h1#server_name {
 	background: rgba(255, 177, 58, 0.08) !important;
 }
 
+#upcoming_maps .map_container.show_opinions,
+#upcoming_maps .map_container.opinion_locked {
+	min-height: 245px !important;
+}
+
 #upcoming_maps .map_title {
 	position: static !important;
 	grid-column: 2;
+	grid-row: 1;
 	display: block !important;
 	min-height: 0 !important;
 	padding: 0 !important;
@@ -543,8 +551,21 @@ h1#server_name {
 	text-underline-offset: 2px;
 }
 
+#upcoming_maps .map_opinion_hint {
+	grid-column: 2;
+	grid-row: 2;
+	align-self: start;
+	color: rgba(235, 229, 214, 0.54);
+	font-size: 0.64rem;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	pointer-events: none;
+}
+
 #upcoming_maps .map_image {
 	grid-column: 1;
+	grid-row: 1 / span 2;
 	width: 112px !important;
 	height: 70px !important;
 	align-self: stretch;
@@ -554,6 +575,7 @@ h1#server_name {
 
 #upcoming_maps .map_actions {
 	grid-column: 3;
+	grid-row: 1 / span 2;
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
@@ -580,6 +602,7 @@ h1#server_name {
 }
 
 .map_opinion_dropdown {
+	position: relative !important;
 	display: block;
 	width: 100%;
 	box-sizing: border-box;
@@ -588,20 +611,23 @@ h1#server_name {
 	opacity: 0;
 	padding: 0 12px 0 126px;
 	margin: 0;
+	background: rgba(8, 9, 7, 0.58);
 	border-top: 1px solid transparent;
+	z-index: 3;
 	transform-origin: top;
 	transform: scaleY(0.96);
 	transition: max-height 220ms ease, opacity 180ms ease, padding 220ms ease, margin 220ms ease, border-color 220ms ease, transform 220ms ease;
 }
 
 #upcoming_maps .map_container:hover .map_opinion_dropdown,
-#upcoming_maps .map_container.show_opinions .map_opinion_dropdown {
-	max-height: 260px;
-	opacity: 1;
-	padding: 9px 12px 12px 126px;
-	margin: 0 0 2px;
-	border-top-color: rgba(255, 177, 58, 0.18);
-	transform: scaleY(1);
+#upcoming_maps .map_container.show_opinions .map_opinion_dropdown,
+#upcoming_maps .map_container.opinion_locked .map_opinion_dropdown {
+	max-height: 180px !important;
+	opacity: 1 !important;
+	padding: 9px 12px 12px 126px !important;
+	margin: 0 0 2px !important;
+	border-top-color: rgba(255, 177, 58, 0.18) !important;
+	transform: scaleY(1) !important;
 }
 
 .map_opinion_title {
