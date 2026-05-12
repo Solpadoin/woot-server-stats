@@ -531,7 +531,7 @@ h1#server_name {
 
 #upcoming_maps .map_container.show_opinions,
 #upcoming_maps .map_container.opinion_locked {
-	min-height: 245px !important;
+	min-height: 330px !important;
 }
 
 #upcoming_maps .map_title {
@@ -611,7 +611,7 @@ h1#server_name {
 	opacity: 0;
 	padding: 0 18px;
 	margin: 0;
-	background: rgba(8, 9, 7, 0.58);
+	background: transparent;
 	border-top: 1px solid transparent;
 	z-index: 3;
 	transform-origin: top;
@@ -622,7 +622,7 @@ h1#server_name {
 #upcoming_maps .map_container:hover .map_opinion_dropdown,
 #upcoming_maps .map_container.show_opinions .map_opinion_dropdown,
 #upcoming_maps .map_container.opinion_locked .map_opinion_dropdown {
-	max-height: 178px !important;
+	max-height: 245px !important;
 	opacity: 1 !important;
 	padding: 12px 18px 14px !important;
 	margin: 0 0 2px !important;
@@ -637,6 +637,7 @@ h1#server_name {
 	table-layout: fixed !important;
 	border-radius: 8px;
 	overflow: hidden;
+	background: rgba(18, 12, 5, 0.28);
 }
 
 .map_opinion_table th,
